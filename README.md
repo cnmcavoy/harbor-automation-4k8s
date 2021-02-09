@@ -23,25 +23,24 @@ The diagram below shows the overall design of this project:
 
 * A cluster scoped Kubernetes CR named `HarborServerConfiguration` is designed to keep the Harbor server access info by providing the access
 host and access key & secret (key and secret should be wrapped into a kubernetes secret) for future referring.
-* For enabling the pulling secret injection in a Kubernetes namespace:
-  - add annotation `goharbor.io/secret-issuer:[harborserverconfiguration_cr_name]` to the namespace. `harborserverconfiguration_cr_name` 
+* To enable the image pull secret injection in a Kubernetes namespace:
+  - add the annotation `goharbor.io/secret-issuer:[harborserverconfiguration_cr_name]` to the namespace. `harborserverconfiguration_cr_name` 
   is the name of the CR `HarborServerConfiguration` that includes the Harbor server info.
-  - add annotation `goharbor.io/service-account:[service_account_name]` to the namespace. `service_account_name` is the 
-  name of the Kubernetes service account that you want to use to bind the image pulling secret later.
-* When the namespace is creating, the operator will check the related annotations set above. If they're set, then:
+  - optionally, add the annotation `goharbor.io/service-account:[service_account_name]` to the namespace. `service_account_name` is the 
+  name of the Kubernetes service account to bind the image pulling secret later.
+* When the namespace is created, the operator will check the annotations above. If they're set, then:
   - make sure a corresponding project is existing (create if there is none) at the Harbor referred by 
   the `HarborServerConfiguration` referred in `goharbor.io/secret-issuer`.
-  - make sure a robot account under the mapping project is existing (create if there is none).
+  - make sure a robot account under the mapping project is existing (created if there is none).
   - a CR `PullSecretBinding` is created to keep the relationship between Kubernetes resources and Harbor resources.
   - the mapping project is recorded in annotation `annotation:goharbor.io/project` of the CR `PullSecretBinding`.
   - the linked robot account is recorded in annotation `annotation:goharbor.io/robot` of the CR `PullSecretBinding`.
-  - make sure the lnked robot account is wrapped as a Kubernetes secret and bind with the service account that is 
+  - make sure the linked robot account is wrapped as a Kubernetes secret and bind with the service account that is 
   specified in the annotation `annotation:goharbor.io/service-account` of the namespace.
 * If the annotation `annotation:goharbor.io/image-rewrite=auto` is set for the namespace, the mutating webhook is enabled.
   - any pods deployed to the namespace with image that does not have registry host (e.g.: `nginx:1.14.3`) will be rewrite 
   by adding harbor host and mapping project (e.g.: `goharbor.io/namespace1_xxx/nginx:1.14.3`) from the `HarborServerConfiguration` 
   referred in `goharbor.io/secret-issuer`.
-  - the rewriting harbor host will be recorded in the annotation `goharbor.io/rewrite-image-rewrite` of the namespace.
 * tbd
 
 ## Installation

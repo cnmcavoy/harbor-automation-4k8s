@@ -82,7 +82,7 @@ func (r *HarborServerConfigurationReconciler) Reconcile(req ctrl.Request) (ctrl.
 
 	if err := r.Client.Get(ctx, secretNSedName, accessSecret); err != nil {
 		// No matter what errors (including not found) occurred, the server configuration is invalid
-		return ctrl.Result{}, err
+		return ctrl.Result{}, fmt.Errorf("failed to find access credential %q for %s: %w", secretNSedName, hsc.Name, err)
 	}
 
 	cred := &model.AccessCred{}
